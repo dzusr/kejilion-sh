@@ -47,6 +47,8 @@ run_command() {
 canshu_v6() {
 	if grep -q '^canshu="V6"' /usr/local/bin/k > /dev/null 2>&1; then
 		sed -i 's/^canshu="default"/canshu="V6"/' ~/kejilion.sh
+	elif grep -q '^canshu="V6"' ~/kejilion.sh.bak > /dev/null 2>&1; then
+		sed -i 's/^canshu="default"/canshu="V6"/' ~/kejilion.sh
 	fi
 }
 
@@ -54,14 +56,16 @@ canshu_v6() {
 CheckFirstRun_true() {
 	if grep -q '^permission_granted="true"' /usr/local/bin/k > /dev/null 2>&1; then
 		sed -i 's/^permission_granted="false"/permission_granted="true"/' ~/kejilion.sh
+	elif grep -q '^permission_granted="true"' ~/kejilion.sh.bak > /dev/null 2>&1; then
+		sed -i 's/^permission_granted="false"/permission_granted="true"/' ~/kejilion.sh
 	fi
 }
 
 
 
-# 이 기능은 함수에 묻혀있는 정보를 수집하고 사용자가 사용하는 현재 스크립트 버전 번호, 사용 시간, 시스템 버전, CPU 아키텍처, 시스템 국가 및 기능 이름을 기록합니다. 민감한 정보는 포함되어 있지 않으니 걱정하지 마세요! 저를 믿어주세요!
+# 함수에 묻혀있는 정보를 수집하고 사용자가 사용하는 현재 스크립트 버전 번호, 사용 시간, 시스템 버전, CPU 아키텍처, 시스템 국가 및 기능 이름을 기록하는 기능입니다. 민감한 정보는 포함되어 있지 않으니 걱정하지 마세요! 저를 믿어주세요!
 # 이 기능은 왜 설계되었나요? 그 목적은 사용자가 사용하고 싶어하는 기능을 더 잘 이해하고, 기능을 더욱 최적화하고 사용자 요구에 맞는 더 많은 기능을 출시하는 것입니다.
-# send_stats 함수 호출 위치에 대한 전문을 검색할 수 있습니다. 투명하고 오픈 소스입니다. 불편하신 점이 있으시면 이용을 거부하실 수 있습니다.
+# send_stats 함수 호출 위치에 대한 전문을 검색할 수 있습니다. 투명하고 오픈 소스입니다. 우려되는 사항이 있는 경우 이용을 거부하실 수 있습니다.
 
 
 
@@ -87,6 +91,8 @@ send_stats() {
 yinsiyuanquan2() {
 
 if grep -q '^ENABLE_STATS="false"' /usr/local/bin/k > /dev/null 2>&1; then
+	sed -i 's/^ENABLE_STATS="true"/ENABLE_STATS="false"/' ~/kejilion.sh
+elif grep -q '^ENABLE_STATS="false"' ~/kejilion.sh.bak > /dev/null 2>&1; then
 	sed -i 's/^ENABLE_STATS="true"/ENABLE_STATS="false"/' ~/kejilion.sh
 fi
 
@@ -1093,7 +1099,7 @@ iptables_panel() {
 		  echo "3. 모든 포트를 엽니다. 4. 모든 포트를 닫습니다."
 		  echo "------------------------"
 		  echo "5. IP 화이트리스트 6. IP 블랙리스트"
-		  echo "7. 지정된 IP 지우기"
+		  echo "7. 지정된 IP를 삭제합니다."
 		  echo "------------------------"
 		  echo "11. PING 허용 12. PING 비활성화"
 		  echo "------------------------"
@@ -1200,7 +1206,7 @@ iptables_panel() {
 				  ;;
 
 			  17)
-				  read -e -p "지워진 국가 코드를 입력하십시오(여러 국가 코드는 CN US JP와 같이 공백으로 구분될 수 있음)." country_code
+				  read -e -p "삭제된 국가 코드를 입력하십시오(여러 국가 코드는 CN US JP와 같이 공백으로 구분될 수 있음)." country_code
 				  manage_country_rules unblock $country_code
 				  send_stats "명확한 국가$country_codeIP"
 				  ;;
@@ -1262,7 +1268,7 @@ check_swap() {
 
 local swap_total=$(free -m | awk 'NR==3{print $2}')
 
-# 가상 메모리를 생성해야 하는지 결정
+# 가상 메모리를 만들어야 하는지 확인
 [ "$swap_total" -gt 0 ] || add_swap 1024
 
 
@@ -1355,7 +1361,7 @@ auto_optimize_dns() {
 	# 국가 코드(예: CN, US 등)를 가져옵니다.
 	local country=$(curl -s ipinfo.io/country)
 
-	# 국가에 따라 DNS 설정
+	# 국가별 DNS 설정
 	if [ "$country" = "CN" ]; then
 		local dns1_ipv4="223.5.5.5"
 		local dns2_ipv4="183.60.83.19"
@@ -2118,7 +2124,7 @@ web_security() {
 			  echo "------------------------"
 			  echo "11. 차단 매개변수 구성 12. 차단된 IP 모두 삭제"
 			  echo "------------------------"
-			  echo "21. cloudflare 모드 22. 고부하에서 5초 보호 활성화"
+			  echo "21. cloudflare 모드 22. 고부하에서 5초 쉴드 활성화"
 			  echo "------------------------"
 			  echo "31. WAF 켜기 32. WAF 끄기"
 			  echo "33. DDOS 방어 켜기 34. DDOS 방어 끄기"
@@ -2232,7 +2238,7 @@ web_security() {
 
 				  22)
 					  send_stats "고부하로 5초 쉴드 가능"
-					  echo -e "${gl_huang}웹사이트는 5분마다 자동으로 감지합니다. 높은 부하를 감지하면 자동으로 쉴드가 열리고, 낮은 부하가 감지되면 자동으로 5초 동안 쉴드가 닫힙니다.${gl_bai}"
+					  echo -e "${gl_huang}웹사이트는 5분마다 자동으로 감지합니다. 고부하를 감지하면 자동으로 실드를 열고, 저부하를 감지하면 자동으로 5초 동안 실드를 닫습니다.${gl_bai}"
 					  echo "--------------"
 					  echo "CF 매개변수 가져오기:"
 					  echo -e "cf 백엔드 오른쪽 상단에 있는 내 프로필로 이동하여 왼쪽에 있는 API 토큰을 선택하고${gl_huang}Global API Key${gl_bai}"
@@ -2783,7 +2789,7 @@ clear_host_port_rules() {
 	install iptables
 
 
-	# 다른 모든 IP의 접근을 차단하는 규칙을 삭제하세요.
+	# 다른 모든 IP의 접근을 차단하는 규칙을 해제하세요.
 	if iptables -C INPUT -p tcp --dport "$port" -j DROP &>/dev/null; then
 		iptables -D INPUT -p tcp --dport "$port" -j DROP
 	fi
@@ -2799,7 +2805,7 @@ clear_host_port_rules() {
 	fi
 
 
-	# 다른 모든 IP의 접근을 차단하는 규칙을 삭제하세요.
+	# 다른 모든 IP의 접근을 차단하는 규칙을 해제하세요.
 	if iptables -C INPUT -p udp --dport "$port" -j DROP &>/dev/null; then
 		iptables -D INPUT -p udp --dport "$port" -j DROP
 	fi
@@ -3719,7 +3725,7 @@ stream_panel() {
 
 ldnmp_Proxy_backend_stream() {
 	clear
-	webname="스트리밍 4계층 프록시-로드 밸런싱"
+	webname="스트림 4계층 프록시-로드 밸런싱"
 
 	send_stats "설치하다$webname"
 	echo "배포 시작$webname"
@@ -4100,7 +4106,7 @@ EOF
 
 	donlond_frp frps
 
-	# 생성된 정보 출력
+	# 생성된 정보를 출력
 	ip_address
 	echo "------------------------"
 	echo "클라이언트 배포에 필요한 매개변수"
@@ -4162,7 +4168,7 @@ remote_port = ${remote_port}
 
 EOF
 
-	# 생성된 정보 출력
+	# 생성된 정보를 출력
 	echo "제공하다$service_namefrpc.toml에 성공적으로 추가되었습니다."
 
 	docker restart frpc
@@ -4409,7 +4415,7 @@ frps_panel() {
 
 			8)
 				send_stats "IP 접근 차단"
-				echo "역방향 도메인 이름 접근을 가지고 있는 경우, 이 기능을 사용하면 IP+포트 접근을 차단할 수 있어 더욱 안전합니다."
+				echo "역방향 도메인 이름 접근이 있는 경우, 이 기능을 사용하면 IP+포트 접근을 차단할 수 있어 더욱 안전합니다."
 				read -e -p "차단할 포트를 입력하세요:" frps_port
 				block_host_port "$frps_port" "$ipv4_address"
 				;;
@@ -4773,7 +4779,7 @@ linux_clean() {
 
 bbr_on() {
 
-# 커널 조정 모듈과의 충돌을 방지하기 위해 sysctl.d에 대한 통합 쓰기
+# 커널 튜닝 모듈과의 충돌을 방지하기 위해 sysctl.d에 대한 통합 쓰기
 local CONF="/etc/sysctl.d/99-kejilion-bbr.conf"
 mkdir -p /etc/sysctl.d
 echo "net.core.default_qdisc=fq" > "$CONF"
@@ -4977,7 +4983,7 @@ import_sshkey() {
 	fi
 
 	if [[ ! "$public_key" =~ ^ssh-(rsa|ed25519|ecdsa) ]]; then
-		echo -e "${gl_hong}오류: 합법적인 SSH 공개 키처럼 보이지 않습니다.${gl_bai}"
+		echo -e "${gl_hong}오류: 합법적인 SSH 공개 키가 아닌 것 같습니다.${gl_bai}"
 		return 1
 	fi
 
@@ -5091,7 +5097,7 @@ fetch_github_ssh_keys() {
 	echo "1. 로그인${gh_https_url}github.com/settings/keys"
 	echo "2. 새 SSH 키 또는 SSH 키 추가를 클릭하세요."
 	echo "3. 제목은 원하는 대로 입력할 수 있습니다. (예: Home Laptop 2026)"
-	echo "4. 로컬 공개 키의 내용(일반적으로 ~/.ssh/id_ed25519.pub 또는 id_rsa.pub의 전체 내용)을 키 필드에 붙여넣습니다."
+	echo "4. 로컬 공개 키의 내용(일반적으로 ~/.ssh/id_ed25519.pub 또는 id_rsa.pub의 전체 내용)을 키 필드에 붙여 넣습니다."
 	echo "5. SSH 키 추가를 클릭하여 추가를 완료합니다."
 	echo ""
 	echo "추가되면 모든 공개 키는 다음 GitHub에서 공개적으로 사용할 수 있습니다."
@@ -5838,7 +5844,7 @@ clamav_freshclam() {
 
 clamav_scan() {
 	if [ $# -eq 0 ]; then
-		echo "스캔할 디렉터리를 지정하세요."
+		echo "스캔할 디렉터리를 지정하십시오."
 		return
 	fi
 
@@ -6322,7 +6328,7 @@ Kernel_optimize() {
 			  cd ~
 			  clear
 			  optimize_web_server
-			  send_stats "웹사이트 최적화 모드"
+			  send_stats "웹사이트 최적화 모델"
 			  ;;
 		  4)
 			  cd ~
@@ -7386,7 +7392,7 @@ run_task() {
 	else
 		echo "동기화에 실패했습니다! 다음 사항을 확인하세요."
 		echo "1. 네트워크 연결이 정상인가요?"
-		echo "2. 원격 호스트에 접근 가능한지 여부"
+		echo "2. 원격 호스트에 접근할 수 있나요?"
 		echo "3. 인증정보가 정확합니까?"
 		echo "4. 로컬 및 원격 디렉터리에 올바른 액세스 권한이 있습니까?"
 	fi
@@ -8136,7 +8142,7 @@ docker_ssh_migration() {
 
 				mkdir -p "$original_path"
 				tar -xzf "$BACKUP_DIR/compose_project_${project_name}.tar.gz" -C "$original_path"
-				echo -e "${gl_lv}프로젝트 작성 [$project_name]는 다음 위치로 추출되었습니다.$original_path${gl_bai}"
+				echo -e "${gl_lv}프로젝트 작성 [$project_name]가 다음 위치로 추출되었습니다.$original_path${gl_bai}"
 
 				cd "$original_path" || return
 				docker compose down || true
@@ -8152,7 +8158,7 @@ docker_ssh_migration() {
 			[[ ! -f "$json" ]] && continue
 			has_container=true
 			container=$(basename "$json" | sed 's/_inspect.json//')
-			echo -e "${gl_lv}처리용기:$container${gl_bai}"
+			echo -e "${gl_lv}처리 용기:$container${gl_bai}"
 
 			# 컨테이너가 이미 존재하고 실행 중인지 확인하세요.
 			if docker ps --format '{{.Names}}' | grep -q "^${container}$"; then
@@ -8238,7 +8244,7 @@ docker_ssh_migration() {
 
 		echo -e "${gl_huang}백업 전송 중...${gl_bai}"
 		if [[ -z "$TARGET_PASS" ]]; then
-			# 키를 사용하여 로그인
+			# 키로 로그인
 			scp -P "$TARGET_PORT" -o StrictHostKeyChecking=no -r "$LATEST_TAR" "$TARGET_USER@$TARGET_IP:/tmp/"
 		fi
 
@@ -8425,7 +8431,7 @@ linux_docker() {
 					  3)
 						  send_stats "네트워크에 가입하세요"
 						  read -e -p "종료 네트워크 이름:" dockernetwork
-						  read -e -p "해당 컨테이너는 네트워크를 종료합니다(여러 컨테이너 이름을 공백으로 구분하세요)." dockernames
+						  read -e -p "이러한 컨테이너는 네트워크를 종료합니다(여러 컨테이너 이름을 공백으로 구분하세요)." dockernames
 
 						  for dockername in $dockernames; do
 							  docker network disconnect $dockernetwork $dockername
@@ -8786,7 +8792,7 @@ linux_Oracle() {
 		  1)
 			  clear
 			  echo "활성 스크립트: CPU 사용량 10-20% 메모리 사용량 20%"
-			  read -e -p "설치하시겠습니까? (예/아니요):" choice
+			  read -e -p "정말로 설치하시겠습니까? (예/아니요):" choice
 			  case "$choice" in
 				[Yy])
 
@@ -10103,8 +10109,7 @@ with open(path, 'r', encoding='utf-8') as f:
     obj = json.load(f)
 
 session = obj.setdefault('session', {})
-session['dmScope'] = session.get('dmScope', 'per-channel-peer')
-session['resetTriggers'] = ['/new', '/reset']
+session.setdefault('dmScope', 'per-channel-peer')
 session['reset'] = {
     'mode': 'idle',
     'idleMinutes': 10080
@@ -10505,8 +10510,8 @@ PY
 
 
 	start_bot() {
-		echo "OpenClaw를 시작하는 중..."
-		send_stats "OpenClaw를 시작하는 중..."
+		echo "OpenClaw를 시작하세요..."
+		send_stats "OpenClaw를 시작하세요..."
 		start_gateway
 		break_end
 	}
@@ -11420,7 +11425,7 @@ PY
 	}
 
 	openclaw_api_providers_showcase() {
-		send_stats "OpenClaw API 공급업체 권장 사항"
+		send_stats "OpenClaw API 공급업체 권장사항"
 
 		clear
 		echo ""
@@ -12173,7 +12178,7 @@ PYTHON_EOF
 				[ -z "$plugin_id" ] && continue
 
 				if [ "$plugin_action" = "1" ]; then
-					echo "🔍 플러그인 상태 확인 중:$plugin_id"
+					echo "🔍 플러그인 상태 확인:$plugin_id"
 					local plugin_list
 					plugin_list=$(openclaw plugins list 2>/dev/null)
 
@@ -12851,7 +12856,7 @@ if os.path.isdir(agents_root):
                 if os.path.isfile(src): shutil.copy2(src, dest)
                 else: shutil.copytree(src, dest, dirs_exist_ok=True)
             print(f"✅ 에이전트 메모리 복원됨: {aid}")' "$workspaces_json" "$pkg_dir/payload"
-		rm -rf "$tmp_unpack"; echo "✅ 메모리 전체 복구 완료"; break_end
+		rm -rf "$tmp_unpack"; echo "✅ 전체 메모리 복원 완료"; break_end
 	}
 
 
@@ -12959,7 +12964,7 @@ if os.path.isdir(agents_root):
 		if [ "$invalid" -ne 0 ]; then
 			rm -f "$valid_list"
 			rm -rf "$tmp_unpack"
-			echo "❌ 복원이 중단되었습니다. 안전하지 않은 경로가 존재합니다."
+			echo "❌ 복원이 중단되었습니다: 안전하지 않은 경로가 존재합니다."
 			break_end
 			return 1
 		fi
@@ -13016,7 +13021,7 @@ if os.path.isdir(agents_root):
 
 		echo "백업 디렉터리:$backup_root"
 		if [ ${#OPENCLAW_BACKUP_FILES[@]} -eq 0 ]; then
-			echo "아직 백업 파일이 없습니다."
+			echo "아직 백업 파일이 없습니다"
 			return 0
 		fi
 
@@ -13079,7 +13084,7 @@ if os.path.isdir(agents_root):
 	}
 
 	openclaw_backup_delete_file() {
-		send_stats "OpenClaw 삭제 백업 파일"
+		send_stats "OpenClaw 백업 파일 삭제"
 		local backup_root backup_root_real user_input target_file target_path target_type
 		backup_root=$(openclaw_backup_root)
 
@@ -13366,27 +13371,60 @@ EOF
 	}
 
 	openclaw_memory_render_status() {
-		local agent_lines agent_id workspace status_output status_lines first="true"
-		agent_lines=$(openclaw_memory_list_agents)
-		while IFS=$'\t' read -r agent_id workspace; do
-			[ -z "$agent_id" ] && continue
-			status_output=$(openclaw memory status --agent "$agent_id" 2>/dev/null)
-			[ "$first" = "true" ] || echo ""
-			first="false"
-			echo "Agent: $agent_id"
-			if [ $? -ne 0 ] || [ -z "$status_output" ]; then
-				echo "상태를 가져오지 못했습니다."
-				continue
-			fi
-			status_lines=$(echo "$status_output" | grep -E "^(Provider|Vector|Indexed|Workspace|Store)" | head -n 5 | sed -e 's/^공급자: /기본 솔루션: /' -e 's/^벡터: /벡터 라이브러리 상태: /' -e 's/^색인: /포함된 파일: /' -e 's/^작업 공간: /작업 공간: /' -e 's/^저장소: /색인 라이브러리: /')
-			if [ -z "$status_lines" ]; then
-				echo "설치되지 않음/시작되지 않음"
-			else
-				echo "$status_lines"
-			fi
-		done <<EOF
-$agent_lines
-EOF
+		local json_output
+		json_output=$(openclaw memory status --json 2>/dev/null)
+		if [ -z "$json_output" ]; then
+			echo "메모리 상태를 가져오지 못했습니다(openclaw 메모리 상태 --json 출력 없음)."
+			return 1
+		fi
+		python3 - "$json_output" <<'PY'
+import json, sys
+raw = sys.argv[1]
+try:
+    data = json.loads(raw)
+except Exception:
+    print("메모리 상태를 가져오지 못했습니다(JSON 구문 분석 오류).")
+    raise SystemExit(1)
+if not isinstance(data, list) or len(data) == 0:
+    print("에이전트 메모리 상태가 감지되지 않았습니다.")
+    raise SystemExit(0)
+first = True
+for entry in data:
+    if not isinstance(entry, dict):
+        continue
+    agent_id = entry.get("agentId", "?")
+    s = entry.get("status", {})
+    if not isinstance(s, dict):
+        s = {}
+    if not first:
+        print("")
+    first = False
+    print("Agent: %s" % agent_id)
+    backend = s.get("backend") or s.get("provider") or "-"
+    print("기본 솔루션: %s" % backend)
+    files = s.get("files", 0)
+    chunks = s.get("chunks", 0)
+    print("포함됨: %s개 파일 / %s개 블록" % (files, chunks))
+    dirty = s.get("dirty")
+    dirty_str = "예" if dirty else "아니요"
+    print("새로 고칠 예정: %s" % dirty_str)
+    vec = s.get("vector", {})
+    if isinstance(vec, dict) and vec.get("enabled"):
+        vec_str = "준비가 된" if vec.get("available") else "활성화됨(사용할 수 없음)"
+    else:
+        vec_str = "활성화되지 않음"
+    print("벡터 라이브러리: %s" % vec_str)
+    ws = s.get("workspaceDir") or "-"
+    print("작업공간: %s" % ws)
+    db = s.get("dbPath") or "-"
+    print("인덱스 라이브러리: %s" % db)
+    scan = entry.get("scan", {})
+    if isinstance(scan, dict):
+        issues = scan.get("issues", [])
+        if issues:
+            for issue in issues[:3]:
+                print("  ⚠️ %s" % issue)
+PY
 	}
 
 	openclaw_memory_get_backend() {
@@ -13461,7 +13499,7 @@ EOF
 
 		OPENCLAW_MEMORY_RECOMMEND_REASON=()
 		if [ "$qmd_ok" = "true" ]; then
-			OPENCLAW_MEMORY_RECOMMEND_REASON+=("QMD 可用")
+			OPENCLAW_MEMORY_RECOMMEND_REASON+=("QMD 사용 가능")
 		else
 			OPENCLAW_MEMORY_RECOMMEND_REASON+=("QMD가 감지되지 않음")
 		fi
@@ -13480,7 +13518,7 @@ EOF
 		elif [ "$mirror_ok" = "ok" ]; then
 			OPENCLAW_MEMORY_RECOMMEND_REASON+=("hf-mirror.com에 접속할 수 있습니다")
 		else
-			OPENCLAW_MEMORY_RECOMMEND_REASON+=("Huggingface.co / hf-mirror.com에 연결할 수 없을 수 있습니다(국내/제한된 네트워크로 의심됨).")
+			OPENCLAW_MEMORY_RECOMMEND_REASON+=("Huggingface.co / hf-mirror.com에 연결할 수 없습니다(국내/제한된 네트워크로 의심됨).")
 		fi
 
 		if [ "$qmd_ok" = "true" ]; then
@@ -13569,7 +13607,7 @@ EOF
 		local ver
 		ver=$(sqlite3 --version 2>/dev/null | awk '{print $1}')
 		echo "✅ sqlite3 사용 가능: ${ver:-unknown}"
-		echo "ℹ️ sqlite 확장 지원은 안정적으로 감지될 수 없으며 계속됩니다."
+		echo "ℹ️ sqlite 확장 지원은 안정적으로 감지할 수 없으며 계속됩니다."
 		return 0
 	}
 
@@ -13587,7 +13625,7 @@ EOF
 		elif command -v wget >/dev/null 2>&1; then
 			wget -qO- https://bun.sh/install | bash
 		else
-			echo "❌ 컬이나 wget이 감지되지 않아 롤빵을 설치할 수 없습니다."
+			echo "❌ 컬 또는 wget이 감지되지 않아 롤빵을 설치할 수 없습니다."
 			return 1
 		fi
 		if [ -d "$HOME/.bun/bin" ]; then
@@ -13681,7 +13719,7 @@ EOF
 		else
 			echo "가능한 트래픽/디스크 사용량: 실제 상황에 따라 다름"
 		fi
-		echo "확인 후 자동으로 설치/다운로드, 구성 작성, 색인 작성 및 게이트웨이를 다시 시작합니다."
+		echo "확인 후 자동으로 설치/다운로드하고, 구성을 작성하고, 인덱스를 작성하고, 게이트웨이를 다시 시작합니다."
 		echo "고급 옵션: 구성만 작성하려면 구성을 입력하세요(설치 없음, 다운로드 없음, 인덱싱 없음, 다시 시작 없음)."
 		read -e -p "계속하려면 yes를 입력하세요(기본값 N)." confirm_step
 		case "$confirm_step" in
@@ -13732,7 +13770,7 @@ EOF
 			openclaw_memory_config_set "memory.qmd.command" "$OPENCLAW_MEMORY_QMD_PATH"
 			echo "✅ memory.qmd.command에 작성:$OPENCLAW_MEMORY_QMD_PATH"
 		else
-			echo "✅ memory.qmd.command가 정확합니다."
+			echo "✅ memory.qmd.command가 정확합니다"
 		fi
 		if [ "$OPENCLAW_MEMORY_PREHEAT" = "true" ]; then
 			echo "🔥 따뜻한 지수(모델 다운로드 가능)"
@@ -13978,7 +14016,7 @@ EOF
 			fi
 		else
 			echo "includeDefaultMemory 구성이 정상입니다."
-			echo "실행 예정: 기존 인덱스 정리 → 모든 에이전트 인덱스 완전히 재구축"
+			echo "실행 예정: 기존 인덱스 정리 → 모든 에이전트 인덱스 완전 재구축"
 			echo ""
 			read -e -p "실행을 확인하시겠습니까? (예/아니요):" confirm_fix
 			if [[ ! "$confirm_fix" =~ ^[Nn]$ ]]; then
@@ -14162,6 +14200,22 @@ EOF
 			done
 	}
 
+
+	openclaw_memory_search_test() {
+		read -e -p "검색 키워드를 입력하세요:" query
+		if [ -z "$query" ]; then
+			echo "키워드는 비워둘 수 없습니다."
+			return 1
+		fi
+		echo "기억을 찾는 중..."
+		openclaw memory search "$query" --max-results 5
+	}
+
+	openclaw_memory_deep_status() {
+		echo "내장된 모델 준비 상태 감지 중..."
+		openclaw memory status --deep
+	}
+
 	openclaw_memory_menu() {
 		send_stats "OpenClaw 메모리 관리"
 		while true; do
@@ -14174,6 +14228,8 @@ EOF
 			echo "2. 메모리 파일 보기"
 			echo "3. 인덱스 복구(인덱스 예외)"
 			echo "4. 메모리 솔루션(QMD/Local/Auto)"
+			echo "5. 검색 테스트(색인이 작동하는지 확인)"
+			echo "6. 심층 상태 감지(임베디드 모델 확인)"
 			echo "0. 이전 레벨로 돌아갑니다"
 			echo "---------------------------------------"
 			read -e -p "선택사항을 입력하세요:" memory_choice
@@ -14204,7 +14260,7 @@ EOF
 $fl_agent_lines
 EOF
 						openclaw gateway restart
-						echo "✅ 모든 에이전트에서 강제 재구성이 수행되었으며 게이트웨이가 자동으로 다시 시작되었습니다."
+						echo "✅ 모든 에이전트에 대해 강제 재구성이 수행되었으며 게이트웨이가 자동으로 다시 시작되었습니다."
 					fi
 				else
 					openclaw memory index
@@ -14219,6 +14275,14 @@ EOF
 					;;
 				4)
 					openclaw_memory_scheme_menu
+					;;
+				5)
+					openclaw_memory_search_test
+					break_end
+					;;
+				6)
+					openclaw_memory_deep_status
+					break_end
 					;;
 				0)
 					return 0
@@ -14421,75 +14485,111 @@ PY
 		
 		mkdir -p "$HOME/.openclaw"
 		
-		# Python 보안 업데이트를 사용하거나 exec-approvals.json을 생성하세요.
-		python3 -c "
+		# JSON을 생성하고 openclaw 승인 세트 --stdin을 통해 작성(선호)
+		# CLI가 이를 지원하지 않으면 파일을 직접 작성하는 것으로 대체됩니다.
+		local json_payload
+		json_payload=$(python3 -c '
 import json, sys, os
 path = sys.argv[1]
 try:
     if os.path.exists(path):
-        with open(path, 'r') as f:
+        with open(path, "r") as f:
             data = json.load(f)
     else:
-        data = {'version': 1, 'defaults': {}}
+        data = {"version": 1, "defaults": {}}
 except Exception:
-    data = {'version': 1, 'defaults': {}}
-
-if 'defaults' not in data:
-    data['defaults'] = {}
-
-data['defaults']['security'] = sys.argv[2]
-data['defaults']['ask'] = sys.argv[3]
-data['defaults']['askFallback'] = sys.argv[4]
-data['defaults']['autoAllowSkills'] = True
-
-with open(path, 'w') as f:
-    json.dump(data, f, indent=2)
-" "$approvals_file" "$sec" "$ask" "$fallback"
+    data = {"version": 1, "defaults": {}}
+if "defaults" not in data:
+    data["defaults"] = {}
+data["defaults"]["security"] = sys.argv[2]
+data["defaults"]["ask"] = sys.argv[3]
+data["defaults"]["askFallback"] = sys.argv[4]
+data["defaults"]["autoAllowSkills"] = True
+print(json.dumps(data, indent=2))
+' "$approvals_file" "$sec" "$ask" "$fallback")
+		
+		if openclaw_has_command openclaw && echo "$json_payload" | openclaw approvals set --stdin >/dev/null 2>&1; then
+			return 0
+		fi
+		# 대체: 파일을 직접 작성
+		echo "$json_payload" > "$approvals_file"
 	}
 
 	openclaw_permission_render_status() {
 		echo "애플리케이션 계층 구성: ~/.openclaw/openclaw.json"
 		echo "호스트 승인: ~/.openclaw/exec-approvals.json"
 		echo "---------------------------------------"
-		local current_profile=$(openclaw config get tools.profile 2>/dev/null)
-		local sec_val
-		if [ -f "$HOME/.openclaw/exec-approvals.json" ]; then
-			sec_val=$(python3 -c "import json, sys; print(json.load(open('$HOME/.openclaw/exec-approvals.json')).get('defaults', {}).get('security', 'unset'))" 2>/dev/null || echo "unset")
-		else
-			sec_val="unset"
-		fi
+		local current_profile current_sec current_ask current_elevated
+		current_profile=$(openclaw config get tools.profile 2>/dev/null | head -n 1 | sed 's/^"//;s/"$//')
+		current_sec=$(openclaw config get tools.exec.security 2>/dev/null | head -n 1 | sed 's/^"//;s/"$//')
+		current_ask=$(openclaw config get tools.exec.ask 2>/dev/null | head -n 1 | sed 's/^"//;s/"$//')
+		current_elevated=$(openclaw config get tools.elevated.enabled 2>/dev/null | head -n 1 | sed 's/^"//;s/"$//')
+		# Null 값 정리
+		[ -z "$current_profile" ] || echo "$current_profile" | grep -qi "config path not found" && current_profile=""
+		[ -z "$current_sec" ] || echo "$current_sec" | grep -qi "config path not found" && current_sec=""
+		[ -z "$current_ask" ] || echo "$current_ask" | grep -qi "config path not found" && current_ask=""
+		[ -z "$current_elevated" ] || echo "$current_elevated" | grep -qi "config path not found" && current_elevated=""
 
 		local current_mode="알 수 없음/커스텀"
-		if [ "$current_profile" = "coding" ] && [ "$sec_val" = "allowlist" ]; then
-			current_mode="\033[1;32m표준 안전 모드\033[0m"
-		elif [ "$current_profile" = "full" ] && [ "$sec_val" = "full" ]; then
+		if [ "$current_profile" = "full" ] && [ "$current_sec" = "full" ] && [ "$current_ask" = "off" ]; then
 			current_mode="\033[1;31m완전 개방 모드\033[0m"
-		elif [ "$current_profile" = "coding" ] && [ "$sec_val" = "full" ]; then
+		elif [ "$current_profile" = "coding" ] && [ "$current_sec" = "allowlist" ] && [ "$current_ask" = "on-miss" ] && [ "$current_elevated" = "true" ]; then
 			current_mode="\033[1;33m향상된 모드 개발\033[0m"
-		elif [ -z "$current_profile" ] && [ "$sec_val" = "unset" ]; then
+		elif [ "$current_profile" = "coding" ] && [ "$current_sec" = "allowlist" ] && [ "$current_ask" = "on-miss" ]; then
+			current_mode="\033[1;32m표준 안전 모드\033[0m"
+		elif [ -z "$current_profile" ] && [ -z "$current_sec" ]; then
 			current_mode="\033[1;36m공식 샌드박스가 진실을 말해줍니다\033[0m"
 		fi
 		echo -e "현재 포괄적인 보안 수준:${current_mode}"
 		echo "---------------------------------------"
 		echo -e "${gl_huang}[애플리케이션 레이어 도구 정책 현황]${gl_bai}"
-		openclaw config get tools.profile 2>/dev/null | sed 's/^/ 프로필(기본값): /' || echo "  Profile: (unset)"
-		openclaw config get tools.exec.security 2>/dev/null | sed 's/^/ 실행 제한: /' || echo "실행 한도: (설정되지 않음)"
-		openclaw config get tools.exec.ask 2>/dev/null | sed 's/^/ 승인 메시지: /' || echo "승인 메시지: (설정되지 않음)"
-		openclaw config get tools.elevated.enabled 2>/dev/null | sed 's/^/ 권한 상승 스위치: /' || echo "권한 에스컬레이션 스위치: (설정되지 않음)"
+		echo "프로필(기본값): ${current_profile:-(unset)}"
+		echo "실행 제한: ${current_sec:-(unset)}"
+		echo "승인 프롬프트: ${current_ask:-(unset)}"
+		echo "권한 상승 스위치: ${current_elevated:-(unset)}"
 		
 		echo -e "\n${gl_huang}[기본 Exec 승인 상태]${gl_bai}"
-		if [ -f "$HOME/.openclaw/exec-approvals.json" ]; then
-			python3 -c "
+		if openclaw_has_command openclaw; then
+			local approvals_json
+			approvals_json=$(openclaw approvals get --json 2>/dev/null)
+			if [ -n "$approvals_json" ]; then
+				python3 -c '
 import json, sys
 try:
-    with open('$HOME/.openclaw/exec-approvals.json') as f:
-        d = json.load(f).get('defaults', {})
-        print('차단 전략(보안):' + str(d.get('security', '(unset)')))
-        print('신속한 전략(질문):' + str(d.get('ask', '(unset)')))
-        print('UI 커버 없음(AskFallback):' + str(d.get('askFallback', '(unset)')))
+    d = json.loads(sys.argv[1])
+    defaults = d.get("file", {}).get("defaults", {})
+    if not defaults:
+        defaults = d.get("defaults", {})
+    sec = defaults.get("security", "(unset)")
+    ask = defaults.get("ask", "(unset)")
+    fb = defaults.get("askFallback", "(unset)")
+    auto = defaults.get("autoAllowSkills", False)
+    print("차단 전략(보안):" + str(sec))
+    print("신속한 전략(질문):" + str(ask))
+    print("UI 커버 없음(AskFallback):" + str(fb))
+    print("AutoAllowSkills:" + ("on" if auto else "off"))
+    exists = d.get("exists", True)
+    if not exists:
+        print("(승인문서가 존재하지 않으므로 시스템에 내장된 안전망을 이용하세요)")
+except Exception as e:
+    print("(구문 분석 실패:" + str(e) + ")")
+' "$approvals_json"
+			else
+				echo "(openclaw 승인은 --json 출력 없음)"
+			fi
+		elif [ -f "$HOME/.openclaw/exec-approvals.json" ]; then
+			python3 -c '
+import json, os
+path = os.path.expanduser("~/.openclaw/exec-approvals.json")
+try:
+    with open(path) as f:
+        d = json.load(f).get("defaults", {})
+    print("차단 전략(보안):" + str(d.get("security", "(unset)")))
+    print("신속한 전략(질문):" + str(d.get("ask", "(unset)")))
+    print("UI 커버 없음(AskFallback):" + str(d.get("askFallback", "(unset)")))
 except Exception:
-    print('(구성 파일 구문 분석 실패)')
-"
+    print("(구성 파일 구문 분석 실패)")
+'
 		else
 			echo "(구성되지 않음, 시스템에 내장된 보안 정책을 강제로 사용함)"
 		fi
@@ -14529,7 +14629,7 @@ except Exception:
 		openclaw_permission_update_exec_approvals "allowlist" "on-miss" "deny"
 		
 		openclaw_permission_restart_gateway
-		echo -e "${gl_lv}✅ 개발 강화 모드로 전환(권한 상승은 허용되지만, 일반적으로 위험한 명령은 여전히 ​​승인이 필요함)${gl_bai}"
+		echo -e "${gl_lv}✅ 개발 강화 모드로 전환(권한 상승은 허용되지만 일반적인 위험한 명령에는 여전히 승인이 필요함)${gl_bai}"
 	}
 
 	openclaw_permission_apply_full() {
@@ -14563,7 +14663,12 @@ except Exception:
 		openclaw config unset tools.exec.strictInlineEval >/dev/null 2>&1
 		
 		echo "호스트 차단 구성을 정리합니다..."
-		rm -f "$HOME/.openclaw/exec-approvals.json"
+		# CLI를 통해 승인 구성을 지우는 데 우선순위를 두고 파일을 직접 삭제하는 방법으로 대체합니다.
+		if echo '{"version":1,"defaults":{}}' | openclaw approvals set --stdin >/dev/null 2>&1; then
+			true
+		else
+			rm -f "$HOME/.openclaw/exec-approvals.json"
+		fi
 		
 		openclaw_permission_restart_gateway
 		echo -e "${gl_lv}✅ OpenClaw 공식 보안 샌드박스 방어 메커니즘으로 복귀${gl_bai}"
@@ -14584,6 +14689,66 @@ except Exception:
 		read -n 1 -s
 	}
 
+
+	openclaw_permission_manage_allowlist() {
+		while true; do
+			clear
+			echo "======================================="
+			echo "실행 명령 화이트리스트 관리"
+			echo "======================================="
+			echo "현재 허용 목록:"
+			local allowlist_json
+			allowlist_json=$(openclaw approvals get --json 2>/dev/null)
+			if [ -n "$allowlist_json" ]; then
+				python3 -c '
+import json, sys
+try:
+    d = json.loads(sys.argv[1])
+    f = d.get("file", {})
+    agents = f.get("agents", {})
+    found = False
+    for agent_id, agent_data in agents.items():
+        al = agent_data.get("allowlist", [])
+        if al:
+            found = True
+            print("에이전트 [%s]:" % agent_id)
+            for item in al:
+                print("    - %s" % item)
+    if not found:
+        print("(비어 있음, 화이트리스트 규칙이 구성되지 않음)")
+except Exception as e:
+    print("(구문 분석 실패:" + str(e) + ")")
+' "$allowlist_json"
+			else
+				echo "(얻을 수 없음)"
+			fi
+			echo "---------------------------------------"
+			echo "1. 화이트리스트 규칙 추가"
+			echo "2. 화이트리스트 규칙 제거"
+			echo "0. 반품"
+			echo "---------------------------------------"
+			read -e -p "선택하세요:" al_choice
+			case "$al_choice" in
+				1)
+					read -e -p "해제할 명령 경로를 입력하십시오(/usr/bin/git와 같은 glob 지원)." pattern
+					[ -z "$pattern" ] && { echo "비워둘 수 없습니다."; break_end; continue; }
+					read -e -p "에이전트 ID 지정(비워 두기 = 모든 에이전트 *):" agent_id
+					agent_id="${agent_id:-*}"
+					openclaw approvals allowlist add --agent "$agent_id" "$pattern"
+					break_end
+					;;
+				2)
+					read -e -p "제거할 명령 경로를 입력하십시오:" pattern
+					[ -z "$pattern" ] && { echo "비워둘 수 없습니다."; break_end; continue; }
+					openclaw approvals allowlist remove "$pattern"
+					break_end
+					;;
+				0) return 0 ;;
+				*) echo "잘못된 선택"; sleep 1 ;;
+			esac
+		done
+	}
+
 	openclaw_permission_menu() {
 		send_stats "OpenClaw 권한 관리"
 		while true; do
@@ -14598,6 +14763,7 @@ except Exception:
 			echo -e "${gl_kjlan}3.${gl_bai}완전 개방 모드로 전환(${gl_hong}위험! 모든 호스트 차단을 완전히 제거합니다.${gl_bai}）"
 			echo -e "${gl_kjlan}4.${gl_bai}공식 기본 샌드박스 방어 전략 복원"
 			echo -e "${gl_kjlan}5.${gl_bai}기본 보안 감사 및 자동 복구 실행"
+			echo -e "${gl_kjlan}6.${gl_bai}Exec 명령 화이트리스트 관리"
 			echo -e "${gl_kjlan}0.${gl_bai}이전 레벨로 돌아가기"
 			echo "---------------------------------------"
 			read -e -p "선택사항을 입력하세요:" perm_choice
@@ -14628,6 +14794,9 @@ except Exception:
 					;;
 				5)
 					openclaw_permission_run_audit
+					;;
+				6)
+					openclaw_permission_manage_allowlist
 					;;
 				0)
 					return 0
@@ -14705,6 +14874,15 @@ except Exception:
 	}
 
 	openclaw_multiagent_agents_json() {
+		local result
+		if openclaw_has_command openclaw; then
+			result=$(openclaw agents list --json 2>/dev/null)
+			if [ -n "$result" ] && python3 -c "import json,sys; json.loads(sys.argv[1])" "$result" 2>/dev/null; then
+				echo "$result"
+				return 0
+			fi
+		fi
+		# 대체: 구성 파일에서 읽기
 		local config_file
 		config_file=$(openclaw_permission_config_file)
 		if [ -s "$config_file" ]; then
@@ -14723,82 +14901,65 @@ except Exception:
 PY
 			return 0
 		fi
-		openclaw agents list --json 2>/dev/null || echo '[]'
+		echo '[]'
 	}
 
 	openclaw_multiagent_bindings_json() {
+		local result
+		if openclaw_has_command openclaw; then
+			result=$(openclaw agents bindings --json 2>/dev/null)
+			if [ -n "$result" ] && python3 -c "import json,sys; json.loads(sys.argv[1])" "$result" 2>/dev/null; then
+				echo "$result"
+				return 0
+			fi
+		fi
+		# 대체: 구성 파일에서 읽기
 		local config_file
 		config_file=$(openclaw_permission_config_file)
 		if [ -s "$config_file" ]; then
 			python3 - "$config_file" <<'PY'
-import json,sys,os
+import json,sys
 path=sys.argv[1]
-results=[]
-
-def add_item(item):
-    if not isinstance(item,dict):
-        return
-    bind=item.get("bind") or item.get("binding") or item.get("scope") or item.get("route")
-    agent=item.get("agentId") or item.get("agent")
-    if agent or bind:
-        results.append({"agentId": agent or "?", "bind": bind or "-"})
-
-def walk(obj):
-    if isinstance(obj,dict):
-        if "agentId" in obj and any(k in obj for k in ("bind","binding","scope","route")):
-            add_item(obj)
-        for v in obj.values():
-            walk(v)
-    elif isinstance(obj,list):
-        for v in obj:
-            walk(v)
-
 try:
     with open(path) as f:
         data=json.load(f)
-    bindings=data.get("agents",{}).get("bindings") if isinstance(data,dict) else None
-    if isinstance(bindings,list):
-        for item in bindings:
-            add_item(item)
-    walk(data)
+    bindings=data.get("agents",{}).get("bindings",[])
+    if not isinstance(bindings,list):
+        bindings=[]
+    results=[]
+    for item in bindings:
+        if not isinstance(item,dict):
+            continue
+        results.append({"agentId": item.get("agentId") or item.get("agent") or "?", "description": item.get("description") or "-"})
     print(json.dumps(results, ensure_ascii=False))
 except Exception:
     print("[]")
 PY
 			return 0
 		fi
-		openclaw agents bindings --json 2>/dev/null || echo '[]'
+		echo '[]'
 	}
 
 	openclaw_multiagent_sessions_json() {
-		local config_file
-		config_file=$(openclaw_permission_config_file)
-		python3 - "$config_file" <<'PY'
-import json,sys,os
-config_path=sys.argv[1] if len(sys.argv)>1 else ""
-
-def load_agents(path):
-    if path and os.path.exists(path):
-        try:
-            with open(path) as f:
-                data=json.load(f)
-            agents=data.get("agents",{}).get("list",[])
-            if isinstance(agents,list) and agents:
-                ids=[a.get("id") for a in agents if isinstance(a,dict) and a.get("id")]
-                if ids:
-                    return ids
-        except Exception:
-            pass
-    base=os.path.expanduser("~/.openclaw/agents")
-    try:
-        return [d for d in os.listdir(base) if os.path.isdir(os.path.join(base,d))]
-    except Exception:
-        return []
-
-agent_ids=load_agents(config_path)
+		local result
+		if openclaw_has_command openclaw; then
+			result=$(openclaw sessions --json 2>/dev/null | grep -v '^\[')
+			if [ -n "$result" ] && python3 -c "import json,sys; json.loads(sys.argv[1])" "$result" 2>/dev/null; then
+				echo "$result"
+				return 0
+			fi
+		fi
+		# 대체: 파일 시스템에서 읽기
+		python3 <<'PY'
+import json,os
+base=os.path.expanduser("~/.openclaw/agents")
 sessions=[]
-for agent_id in agent_ids:
-    path=os.path.expanduser(f"~/.openclaw/agents/{agent_id}/sessions/sessions.json")
+try:
+    agent_dirs=[d for d in os.listdir(base) if os.path.isdir(os.path.join(base,d))]
+except Exception:
+    agent_dirs=[]
+for agent_id in agent_dirs:
+    path=os.path.join(base,agent_id,"sessions","sessions.json")
     if not os.path.exists(path):
         continue
     try:
@@ -14809,19 +14970,15 @@ for agent_id in agent_ids:
     if isinstance(data,dict):
         items=data.items()
     elif isinstance(data,list):
-        items=[(item.get("key") or item.get("sessionKey") or "?", item) for item in data if isinstance(item,dict)]
+        items=[(item.get("key") or "?", item) for item in data if isinstance(item,dict)]
     else:
         continue
     for key,item in items:
         if not isinstance(item,dict):
             continue
-        model=item.get("model")
-        if not model:
-            report=item.get("systemPromptReport") or {}
-            if isinstance(report,dict):
-                model=report.get("model") or report.get("modelProvider") or report.get("provider")
-        sessions.append({"agentId": agent_id, "key": key, "model": model or "-"})
-print(json.dumps({"sessions": sessions}, ensure_ascii=False))
+        model=item.get("model") or "-"
+        sessions.append({"agentId": agent_id, "key": key, "model": model})
+print(json.dumps({"path":"(filesystem)","count":len(sessions),"sessions":sessions}, ensure_ascii=False))
 PY
 	}
 
@@ -14831,12 +14988,34 @@ PY
 		default_agent=$(openclaw_multiagent_default_agent)
 		echo "구성 파일: ${config_file:-$(openclaw_permission_config_file)}"
 		echo "기본 에이전트:$default_agent"
-		python3 -c 'import json,sys; agents=json.loads(sys.argv[1] or "[]"); bindings=json.loads(sys.argv[2] or "[]"); obj=json.loads(sys.argv[3] or "{}"); sessions=obj.get("sessions",[]) if isinstance(obj,dict) else []; print("구성된 에이전트 수: %s" % len(agents)); print("경로 바인딩 수: %s" % len(bindings)); print("총 세션: %s" % len(sessions)); print("---------------------------------------");
-if not agents: print("현재 다중 에이전트가 구성되어 있지 않습니다.")
+		python3 -c '
+import json,sys
+agents=json.loads(sys.argv[1] or "[]")
+bindings=json.loads(sys.argv[2] or "[]")
+sess_obj=json.loads(sys.argv[3] or "{}")
+sessions=sess_obj.get("sessions",[]) if isinstance(sess_obj,dict) else []
+print("구성된 에이전트 수: %s" % len(agents))
+print("경로 바인딩 수: %s" % len(bindings))
+print("총 세션: %s" % len(sessions))
+print("---------------------------------------")
+if not agents:
+    print("현재 다중 에이전트가 구성되어 있지 않습니다.")
 else:
- import itertools
- for item in itertools.islice(agents, 8):
-  ident_obj=item.get("identity") if isinstance(item.get("identity"),dict) else {}; identity=ident_obj.get("name") or item.get("identityName") or item.get("name") or "-"; emoji=item.get("identityEmoji") or ""; ws=item.get("workspace") or "-"; print("- 에이전트 ID: [1;36m%s [0m" % item.get("id","?")); print("ID 이름: %s %s" % (identity, emoji)); print("작업 디렉터리: %s" % ws)' "$(openclaw_multiagent_agents_json)" "$(openclaw_multiagent_bindings_json)" "$(openclaw_multiagent_sessions_json)"
+    for item in agents[:8]:
+        aid = item.get("id","?")
+        identity = item.get("identityName") or item.get("name") or "-"
+        emoji = item.get("identityEmoji") or ""
+        ws = item.get("workspace") or "-"
+        model = item.get("model") or "-"
+        is_default = item.get("isDefault", False)
+        bcount = item.get("bindings", 0)
+        default_tag = "[기본]" if is_default else ""
+        print("- 에이전트 ID: \033[1;36m%s\033[0m%s" % (aid, default_tag))
+        print("ID 이름: %s %s" % (identity, emoji))
+        print("모델: %s" % model)
+        print("작업 디렉터리: %s" % ws)
+        print("바인딩 수: %s" % bcount)
+' "$(openclaw_multiagent_agents_json)" "$(openclaw_multiagent_bindings_json)" "$(openclaw_multiagent_sessions_json)"
 	}
 
 	openclaw_multiagent_list_agents() {
@@ -14893,10 +15072,16 @@ for idx,item in enumerate(agents,1):
 
 	openclaw_multiagent_list_bindings() {
 		send_stats "OpenClaw 다중 에이전트 - 라우팅 바인딩 보기"
-		python3 -c 'import json,sys; bindings=json.loads(sys.argv[1] or "[]");
-if not bindings: print("아직 경로 바인딩이 없습니다."); raise SystemExit(0)
+		python3 -c '
+import json,sys
+bindings=json.loads(sys.argv[1] or "[]")
+if not bindings:
+    print("아직 경로 바인딩이 없습니다.")
+    raise SystemExit(0)
 for idx,item in enumerate(bindings,1):
- bind=item.get("bind") or item.get("binding") or item.get("scope") or "-"; print("%s. agent=%s | bind=%s" % (idx, item.get("agentId","?"), bind))' "$(openclaw_multiagent_bindings_json)"
+    desc = item.get("description") or "-"
+    print("%s. agent=%s | %s" % (idx, item.get("agentId","?"), desc))
+' "$(openclaw_multiagent_bindings_json)"
 	}
 
 	openclaw_multiagent_add_binding() {
@@ -14938,14 +15123,32 @@ for idx,item in enumerate(bindings,1):
 
 	openclaw_multiagent_show_sessions() {
 		send_stats "OpenClaw 다중 에이전트 - 세션 개요"
-		python3 -c 'import json,sys; obj=json.loads(sys.argv[1] or "{}"); sessions=obj.get("sessions",[]) if isinstance(obj,dict) else [];
-if not sessions: print("아직 세션 데이터가 없습니다."); raise SystemExit(0)
+		python3 -c '
+import json,sys
+sess_obj=json.loads(sys.argv[1] or "{}")
+sessions=sess_obj.get("sessions",[]) if isinstance(sess_obj,dict) else []
+if not sessions:
+    print("아직 세션 데이터가 없습니다.")
+    raise SystemExit(0)
 by_agent={}
-for item in sessions: by_agent[item.get("agentId","?")]=by_agent.get(item.get("agentId","?"),0)+1
+for item in sessions:
+    aid = item.get("agentId","?")
+    by_agent[aid] = by_agent.get(aid, 0) + 1
 print("세션 요약:")
-for agent_id,count in sorted(by_agent.items()): print("- %s: %s" % (agent_id, count))
+for agent_id,count in sorted(by_agent.items()):
+    print("- %s: %s" % (agent_id, count))
 print("---------------------------------------")
-for item in sessions[:10]: print("%s | %s | %s" % (item.get("agentId","?"), item.get("key","-"), item.get("model") or "-"))' "$(openclaw_multiagent_sessions_json)"
+for item in sessions[:10]:
+    key = item.get("key","-")
+    model = item.get("model") or "-"
+    aid = item.get("agentId","?")
+    tokens = ""
+    it = item.get("inputTokens")
+    ot = item.get("outputTokens")
+    if it is not None:
+        tokens = " | in=%s out=%s" % (it, ot or 0)
+    print("%s | %s | %s%s" % (aid, key, model, tokens))
+' "$(openclaw_multiagent_sessions_json)"
 	}
 
 	openclaw_multiagent_health_check() {
@@ -14955,12 +15158,60 @@ for item in sessions[:10]: print("%s | %s | %s" % (item.get("agentId","?"), item
 		config_file=$(openclaw_multiagent_config_file)
 		echo "구성 파일을 확인하세요: ${config_file:-$(openclaw_permission_config_file)}"
 		openclaw config validate || echo "⚠️ 구성 확인에 실패했습니다. 위의 출력을 확인하세요."
-		python3 -c 'import json,sys,os; agents=json.loads(sys.argv[1] or "[]"); bindings=json.loads(sys.argv[2] or "[]"); print("---------------------------------------");
-if not agents: print("⚠️ 구성된 에이전트를 찾을 수 없습니다.");
+		python3 -c '
+import json,sys,os
+agents=json.loads(sys.argv[1] or "[]")
+bindings=json.loads(sys.argv[2] or "[]")
+print("---------------------------------------")
+if not agents:
+    print("⚠️ 구성된 에이전트를 찾을 수 없습니다.")
 else:
- for item in agents:
-  ws=item.get("workspace") or ""; aid=item.get("id","?"); state="OK" if ws and os.path.isdir(os.path.expanduser(ws)) else ("OK" if aid=="main" else "MISSING"); print("agent=%s workspace=%s [%s]" % (aid, ws or "-", state))
-print("경로 바인딩 수=%s" % len(bindings)); print("✅멀티에이전트 헬스체크 완료")' "$(openclaw_multiagent_agents_json)" "$(openclaw_multiagent_bindings_json)"
+    for item in agents:
+        ws = item.get("workspace") or ""
+        aid = item.get("id","?")
+        if ws and os.path.isdir(os.path.expanduser(ws)):
+            state = "OK"
+        elif aid == "main":
+            state = "OK"
+        else:
+            state = "MISSING"
+        model = item.get("model") or "-"
+        bcount = item.get("bindings", 0)
+        print("agent=%s workspace=%s model=%s bindings=%s [%s]" % (aid, ws or "-", model, bcount, state))
+print("경로 바인딩 수=%s" % len(bindings))
+print("✅멀티에이전트 헬스체크 완료")
+' "$(openclaw_multiagent_agents_json)" "$(openclaw_multiagent_bindings_json)"
+		echo ""
+		echo "보안 감사를 실행하세요..."
+		openclaw security audit 2>/dev/null || echo "⚠️ 보안 감사 명령을 사용할 수 없습니다."
+	}
+
+
+	openclaw_multiagent_set_identity() {
+		openclaw_multiagent_require_openclaw || return 1
+		openclaw_multiagent_list_agents
+		read -e -p "ID를 수정하려는 상담원의 ID를 입력하세요." agent_id
+		[ -z "$agent_id" ] && { echo "ID는 비워둘 수 없습니다."; return 1; }
+		echo "옵션 수정(건너뛰려면 비워 두세요):"
+		read -e -p "새 이름:" new_name
+		read -e -p "새로운 이모티콘:" new_emoji
+		local cmd="openclaw agents set-identity --agent $agent_id"
+		[ -n "$new_name" ] && cmd="$cmd --name $new_name"
+		[ -n "$new_emoji" ] && cmd="$cmd --emoji $new_emoji"
+		echo "IDENTITY.md에서 신원 정보를 자동으로 읽을 수도 있습니다."
+		read -e -p "IDENTITY.md에서 읽으시겠습니까? (예/아니요):" from_id
+		if [ "$from_id" = "y" ]; then
+			cmd="openclaw agents set-identity --agent $agent_id --from-identity"
+		fi
+		eval "$cmd"
+	}
+
+	openclaw_multiagent_cleanup_sessions() {
+		openclaw_multiagent_require_openclaw || return 1
+		echo "만료되거나 중복된 세션 데이터를 곧 정리합니다..."
+		read -e -p "확인하려면 yes를 입력하세요." confirm
+		[ "$confirm" != "yes" ] && { echo "취소"; return 0; }
+		openclaw sessions cleanup
 	}
 
 	openclaw_multiagent_menu() {
@@ -14979,6 +15230,8 @@ print("경로 바인딩 수=%s" % len(bindings)); print("✅멀티에이전트 �
 			echo "5. 경로 바인딩 제거"
 			echo "6. 세션 개요 보기"
 			echo "7. 다중 에이전트 상태 확인 실행"
+			echo "8. 상담원 신원(이름/이모지) 수정"
+			echo "9. 만료된 세션 정리"
 			echo "0. 이전 레벨로 돌아갑니다"
 			echo "---------------------------------------"
 			read -e -p "선택사항을 입력하세요:" multi_choice
@@ -14990,6 +15243,8 @@ print("경로 바인딩 수=%s" % len(bindings)); print("✅멀티에이전트 �
 				5) openclaw_multiagent_remove_binding; break_end ;;
 				6) openclaw_multiagent_show_sessions; break_end ;;
 				7) openclaw_multiagent_health_check; break_end ;;
+				8) openclaw_multiagent_set_identity; break_end ;;
+				9) openclaw_multiagent_cleanup_sessions; break_end ;;
 				0) return 0 ;;
 				*) echo "선택이 잘못되었습니다. 다시 시도해 주세요."; sleep 1 ;;
 			esac
@@ -15227,7 +15482,7 @@ openclaw_backup_restore_menu() {
 				openclaw onboard --install-daemon
 				break_end
 				;;
-			12) send_stats "상태 감지 및 복구"
+			12) send_stats "상태 감지 및 수리"
 				openclaw doctor --fix
 				send_stats "OpenClaw API 동기식 트리거링"
 				if sync_openclaw_api_models; then
@@ -15293,7 +15548,7 @@ while true; do
 
 	  echo -e "${gl_kjlan}1.   ${color1}파고다 패널 공식 버전${gl_kjlan}2.   ${color2}aaPanel Pagoda 국제 버전"
 	  echo -e "${gl_kjlan}3.   ${color3}1패널 차세대 관리 패널${gl_kjlan}4.   ${color4}NginxProxyManager 시각화 패널"
-	  echo -e "${gl_kjlan}5.   ${color5}OpenList 다중 저장소 파일 목록 프로그램${gl_kjlan}6.   ${color6}Ubuntu 원격 데스크톱 웹 에디션"
+	  echo -e "${gl_kjlan}5.   ${color5}OpenList 다중 저장소 파일 목록 프로그램${gl_kjlan}6.   ${color6}Ubuntu 원격 데스크톱 웹 버전"
 	  echo -e "${gl_kjlan}7.   ${color7}나타 프로브 VPS 모니터링 패널${gl_kjlan}8.   ${color8}QB 오프라인 BT 자기 다운로드 패널"
 	  echo -e "${gl_kjlan}9.   ${color9}Poste.io 메일 서버 프로그램${gl_kjlan}10.  ${color10}RocketChat 다자간 온라인 채팅 시스템"
 	  echo -e "${gl_kjlan}-------------------------"
@@ -15353,7 +15608,7 @@ while true; do
 	  echo -e "${gl_kjlan}-------------------------"
 	  echo -e "${gl_kjlan}101. ${color101}AI 영상 생성 도구${gl_kjlan}102. ${color102}VoceChat 다자간 온라인 채팅 시스템"
 	  echo -e "${gl_kjlan}103. ${color103}Umami 웹사이트 통계 도구${gl_kjlan}104. ${color104}스트림 4계층 프록시 전달 도구"
-	  echo -e "${gl_kjlan}105. ${color105}쓰위안 노트${gl_kjlan}106. ${color106}Drawnix 오픈 소스 화이트보드 도구"
+	  echo -e "${gl_kjlan}105. ${color105}쓰위안 노트${gl_kjlan}106. ${color106}Drawix 오픈 소스 화이트보드 도구"
 	  echo -e "${gl_kjlan}107. ${color107}PanSou 네트워크 디스크 검색${gl_kjlan}108. ${color108}LangBot 챗봇"
 	  echo -e "${gl_kjlan}109. ${color109}ZFile 온라인 네트워크 디스크${gl_kjlan}110. ${color110}Karakeep 북마크 관리"
 	  echo -e "${gl_kjlan}-------------------------"
@@ -15563,7 +15818,7 @@ while true; do
 		}
 
 
-		local docker_describe="webtop은 Ubuntu 기반 컨테이너입니다. 해당 IP에 접속할 수 없는 경우, 접속할 도메인 이름을 추가해 주세요."
+		local docker_describe="webtop은 Ubuntu 기반 컨테이너입니다. 해당 IP에 접근할 수 없는 경우, 접근할 도메인 이름을 추가해주세요."
 		local docker_url="공식 홈페이지 소개: https://docs.linuxserver.io/images/docker-webtop/"
 		local docker_use=""
 		local docker_passwd=""
@@ -15583,7 +15838,7 @@ while true; do
 			check_docker_app
 			check_docker_image_update $docker_name
 			clear
-			echo -e "나타 모니터링$check_docker $update_status"
+			echo -e "네자 모니터링$check_docker $update_status"
 			echo "오픈 소스, 가볍고 사용하기 쉬운 서버 모니터링 및 운영 및 유지 관리 도구"
 			echo "공식 웹사이트 구축 문서: https://nezha.wiki/guide/dashboard.html"
 			if docker ps -a --format '{{.Names}}' 2>/dev/null | grep -q "$docker_name"; then
@@ -15663,7 +15918,7 @@ while true; do
 			check_docker_image_update $docker_name
 
 			clear
-			echo -e "우편 서비스$check_docker $update_status"
+			echo -e "우정$check_docker $update_status"
 			echo "poste.io는 오픈 소스 메일 서버 솔루션입니다."
 			echo "영상 소개: https://www.bilibili.com/video/BV1wv421C71t?t=0.1"
 
@@ -15695,7 +15950,7 @@ while true; do
 				1)
 					setup_docker_dir
 					check_disk_space 2 /home/docker
-					read -e -p "이메일 도메인 이름을 설정하세요(예: mail.yuming.com):" yuming
+					read -e -p "이메일 도메인 이름을 설정하십시오(예: mail.yuming.com):" yuming
 					mkdir -p /home/docker
 					echo "$yuming" > /home/docker/mail.txt
 					echo "------------------------"
@@ -16263,7 +16518,7 @@ while true; do
 		}
 
 
-		local docker_describe="웹탑은 중국어 버전의 Alpine 컨테이너를 기반으로 합니다. 해당 IP에 접속할 수 없는 경우, 접속할 도메인 이름을 추가해 주세요."
+		local docker_describe="웹탑은 중국어 버전의 Alpine 컨테이너를 기반으로 합니다. 해당 IP에 접근할 수 없는 경우, 접근할 도메인 이름을 추가해주세요."
 		local docker_url="공식 홈페이지 소개: https://docs.linuxserver.io/images/docker-webtop/"
 		local docker_use=""
 		local docker_passwd=""
@@ -17096,7 +17351,7 @@ while true; do
 
 		local app_id="60"
 		local app_name="JumpServer 오픈 소스 요새 머신"
-		local app_text="오픈소스 PAM(Privileged Access Management) 도구입니다. 이 프로그램은 포트 80을 사용하며 액세스를 위한 도메인 이름 추가를 지원하지 않습니다."
+		local app_text="오픈소스 권한 있는 액세스 관리(PAM) 도구입니다. 이 프로그램은 포트 80을 사용하며 액세스를 위한 도메인 이름 추가를 지원하지 않습니다."
 		local app_url="공식 소개:${gh_https_url}github.com/jumpserver/jumpserver"
 		local docker_name="jms_web"
 		local docker_port="80"
@@ -17986,7 +18241,7 @@ while true; do
 
 		}
 
-		local docker_describe="원격으로 영화와 생방송을 함께 시청할 수 있는 프로그램입니다. 동시 시청, 라이브 방송, 채팅 및 기타 기능을 제공합니다."
+		local docker_describe="영화와 생방송을 원격으로 함께 시청할 수 있는 프로그램입니다. 동시 시청, 라이브 방송, 채팅 및 기타 기능을 제공합니다."
 		local docker_url="공식 웹사이트 소개:${gh_https_url}github.com/synctv-org/synctv"
 		local docker_use="echo \"초기 계정 및 비밀번호: root. 로그인 후 시간에 맞춰 로그인 비밀번호를 변경하세요\""
 		local docker_passwd=""
@@ -18045,7 +18300,7 @@ while true; do
 
 		}
 
-		local docker_describe="익명의 비밀번호로 텍스트와 파일을 공유하고, 빠른 배송과 같은 파일 픽업"
+		local docker_describe="익명의 비밀번호로 텍스트와 파일을 공유하고 빠른 배송과 같은 파일 픽업"
 		local docker_url="공식 웹사이트 소개:${gh_https_url}github.com/vastsa/FileCodeBox"
 		local docker_use="echo \"접속 주소 뒤에는 /#/admin이 붙어서 관리자 페이지에 접속합니다\""
 		local docker_passwd="echo \"관리자 비밀번호: FileCodeBox2023\""
@@ -18617,7 +18872,7 @@ while true; do
 	  101|moneyprinterturbo)
 		local app_id="101"
 		local app_name="AI 영상 생성 도구"
-		local app_text="MoneyPrinterTurbo는 AI 대형 모델을 사용하여 고화질 짧은 동영상을 합성하는 도구입니다."
+		local app_text="MoneyPrinterTurbo는 AI 대형 모델을 사용하여 고화질 단편 동영상을 합성하는 도구입니다."
 		local app_url="공식 웹사이트:${gh_https_url}github.com/harry0703/MoneyPrinterTurbo"
 		local docker_name="moneyprinterturbo"
 		local docker_port="8101"
@@ -19067,7 +19322,7 @@ discourse,yunsou,ahhhhfs,nsgame,gying" \
 	  r)
 	  	root_use
 	  	send_stats "모든 앱 복원"
-	  	echo "사용 가능한 애플리케이션 백업"
+	  	echo "사용 가능한 앱 백업"
 	  	echo "-------------------------"
 	  	ls -lt /app*.gz | awk '{print $NF}'
 	  	echo ""
@@ -19140,7 +19395,7 @@ linux_work() {
 	  echo -e "${gl_kjlan}2.   ${gl_bai}작업 영역 2"
 	  echo -e "${gl_kjlan}3.   ${gl_bai}작업 영역 3"
 	  echo -e "${gl_kjlan}4.   ${gl_bai}작업 영역 4"
-	  echo -e "${gl_kjlan}5.   ${gl_bai}작업 영역 5"
+	  echo -e "${gl_kjlan}5.   ${gl_bai}작업 공간 5번"
 	  echo -e "${gl_kjlan}6.   ${gl_bai}작업 영역 6"
 	  echo -e "${gl_kjlan}7.   ${gl_bai}작업 영역 7"
 	  echo -e "${gl_kjlan}8.   ${gl_bai}작업 영역 8"
@@ -19242,7 +19497,7 @@ linux_work() {
 			  echo -e "SSH 상주 모드${tmux_sshd_status}"
 			  echo "SSH 연결을 연 후 바로 상주 모드로 들어가고 이전 작업 상태로 바로 돌아갑니다."
 			  echo "------------------------"
-			  echo "1. 켜기 2. 끄기"
+			  echo "1. 켜짐 2. 꺼짐"
 			  echo "------------------------"
 			  echo "0. 이전 메뉴로 돌아가기"
 			  echo "------------------------"
@@ -19526,7 +19781,7 @@ log_menu() {
 		show_log_overview
 		echo
 		echo "=========== 시스템 로그 관리 메뉴 ==========="
-		echo "1. 최신 시스템 로그(일지) 보기"
+		echo "1. 최신 시스템 로그(일지)를 확인하세요."
 		echo "2. 지정된 서비스 로그 보기"
 		echo "3. 로그인/보안 로그 보기"
 		echo "4. 실시간 추적 로그"
@@ -19538,7 +19793,7 @@ log_menu() {
 		case $choice in
 			1)
 				send_stats "최근 로그 보기"
-				read -erp "가장 최근 로그 줄을 보시겠습니까? [기본값 100]:" lines
+				read -erp "최근 로그 줄을 몇 개나 보셨나요? [기본값 100]:" lines
 				lines=${lines:-100}
 				journalctl -n "$lines" --no-pager
 				read -erp "계속하려면 Enter를 누르세요..."
@@ -19587,7 +19842,7 @@ log_menu() {
 				echo "⚠️ 일지를 청소하세요(안전한 방법)"
 				echo "1) 최근 7일을 보관"
 				echo "2) 최근 3일을 보관한다"
-				echo "3) 최대 로그 크기를 500M로 제한합니다."
+				echo "3) 최대 로그 크기를 500M로 제한하십시오."
 				read -erp "청소 방법을 선택하세요:" c
 				case $c in
 					1) journalctl --vacuum-time=7d ;;
@@ -19693,7 +19948,7 @@ env_menu() {
 		echo "=========== 시스템 환경 변수 관리 =========="
 		echo "현재 사용자:$USER"
 		echo "--------------------------------------"
-		echo "1. 현재 일반적으로 사용되는 환경변수를 확인한다"
+		echo "1. 현재 일반적으로 사용되는 환경변수를 확인하세요."
 		echo "2. ~/.bashrc 보기"
 		echo "3. ~/.profile 보기"
 		echo "4. ~/.bashrc 편집"
@@ -19812,7 +20067,7 @@ linux_Settings() {
 	  echo -e "시스템 도구"
 	  echo -e "${gl_kjlan}------------------------"
 	  echo -e "${gl_kjlan}1.   ${gl_bai}스크립트 시작 단축키 설정${gl_kjlan}2.   ${gl_bai}로그인 비밀번호 변경"
-	  echo -e "${gl_kjlan}3.   ${gl_bai}사용자 비밀번호 로그인 모드${gl_kjlan}4.   ${gl_bai}지정된 Python 버전을 설치합니다."
+	  echo -e "${gl_kjlan}3.   ${gl_bai}사용자 비밀번호 로그인 모드${gl_kjlan}4.   ${gl_bai}지정된 버전의 Python 설치"
 	  echo -e "${gl_kjlan}5.   ${gl_bai}모든 포트 열기${gl_kjlan}6.   ${gl_bai}SSH 연결 포트 수정"
 	  echo -e "${gl_kjlan}7.   ${gl_bai}DNS 주소 최적화${gl_kjlan}8.   ${gl_bai}한 번의 클릭으로 시스템을 다시 설치${gl_huang}★${gl_bai}"
 	  echo -e "${gl_kjlan}9.   ${gl_bai}ROOT 계정을 비활성화하고 새 계정을 만듭니다.${gl_kjlan}10.  ${gl_bai}우선 순위 ipv4/ipv6 전환"
@@ -20069,8 +20324,8 @@ EOF
 						;;
 					2)
 						rm -f /etc/gai.conf
-						echo "먼저 IPv6로 전환됨"
-						send_stats "먼저 IPv6로 전환됨"
+						echo "IPv6 우선순위로 전환됨"
+						send_stats "IPv6 우선순위로 전환됨"
 						;;
 
 					3)
@@ -20297,7 +20552,7 @@ EOF
 				echo "유럽"
 				echo "11. 영국 런던 시간 12. 프랑스 파리 시간"
 				echo "13. 독일 베를린 시간 14. 러시아 모스크바 시간"
-				echo "15. 네덜란드 위트라흐트 시간 16. 스페인 마드리드 시간"
+				echo "15. 네덜란드 유트라흐트 시간 16. 스페인 마드리드 시간"
 				echo "------------------------"
 				echo "미국"
 				echo "21. 미국 서부 시간 22. 미국 동부 시간"
@@ -20365,7 +20620,7 @@ EOF
 					  echo "$new_hostname" > /etc/hostname
 					  hostname "$new_hostname"
 				  else
-					  # Debian, Ubuntu, CentOS 등과 같은 다른 시스템
+					  # Debian, Ubuntu, CentOS 등과 같은 기타 시스템
 					  hostnamectl set-hostname "$new_hostname"
 					  sed -i "s/$current_hostname/$new_hostname/g" /etc/hostname
 					  systemctl restart systemd-hostnamed
@@ -20620,7 +20875,7 @@ EOF
 			  root_use
 			  send_stats "전신 경고"
 			  echo "TG-bot 모니터링 및 조기경보 기능"
-			  echo "영상소개: https://youtu.be/vLL-eb3Z_TY"
+			  echo "영상 소개: https://youtu.be/vLL-eb3Z_TY"
 			  echo "------------------------------------------------"
 			  echo "로컬 CPU, 메모리, 하드 디스크, 트래픽 및 SSH 로그인에 대한 실시간 모니터링 및 경고를 달성하려면 경고를 수신하도록 tg 로봇 API 및 사용자 ID를 구성해야 합니다."
 			  echo "임계값에 도달하면 경고 메시지가 사용자에게 전송됩니다."
@@ -21170,7 +21425,7 @@ run_commands_on_servers() {
 	# 추출된 정보를 배열로 변환
 	IFS=$'\n' read -r -d '' -a SERVER_ARRAY <<< "$SERVERS"
 
-	# 서버를 순회하고 명령을 실행합니다.
+	# 서버를 탐색하고 명령을 실행합니다.
 	for ((i=0; i<${#SERVER_ARRAY[@]}; i+=5)); do
 		local name=${SERVER_ARRAY[i]}
 		local hostname=${SERVER_ARRAY[i+1]}
@@ -21178,7 +21433,7 @@ run_commands_on_servers() {
 		local username=${SERVER_ARRAY[i+3]}
 		local password=${SERVER_ARRAY[i+4]}
 		echo
-		echo -e "${gl_huang}연결하다$name ($hostname)...${gl_bai}"
+		echo -e "${gl_huang}연결 대상$name ($hostname)...${gl_bai}"
 		# sshpass -p "$password" ssh -o StrictHostKeyChecking=no "$username@$hostname" -p "$port" "$1"
 		sshpass -p "$password" ssh -t -o StrictHostKeyChecking=no "$username@$hostname" -p "$port" "$1"
 	done
@@ -21212,7 +21467,7 @@ while true; do
 	  echo -e "${gl_kjlan}일괄적으로 작업 실행${gl_bai}"
 	  echo -e "${gl_kjlan}11. ${gl_bai}기술 사자 스크립트 설치${gl_kjlan}12. ${gl_bai}시스템 업데이트${gl_kjlan}13. ${gl_bai}시스템 청소"
 	  echo -e "${gl_kjlan}14. ${gl_bai}도커 설치${gl_kjlan}15. ${gl_bai}BBR3 설치${gl_kjlan}16. ${gl_bai}1G 가상 메모리 설정"
-	  echo -e "${gl_kjlan}17. ${gl_bai}시간대를 상하이로 설정${gl_kjlan}18. ${gl_bai}모든 포트 열기${gl_kjlan}51. ${gl_bai}맞춤 지침"
+	  echo -e "${gl_kjlan}17. ${gl_bai}시간대를 상하이로 설정${gl_kjlan}18. ${gl_bai}모든 포트 열기${gl_kjlan}51. ${gl_bai}사용자 정의 지시어"
 	  echo -e "${gl_kjlan}------------------------${gl_bai}"
 	  echo -e "${gl_kjlan}0.  ${gl_bai}메인 메뉴로 돌아가기"
 	  echo -e "${gl_kjlan}------------------------${gl_bai}"
@@ -21423,10 +21678,13 @@ while true; do
 	echo "모든 로그:${gh_proxy}raw.githubusercontent.com/kejilion/sh/main/kejilion_sh_log.txt"
 	echo "------------------------"
 
-	curl -s ${gh_proxy}raw.githubusercontent.com/kejilion/sh/main/kejilion_sh_log.txt | tail -n 30
-	local sh_v_new=$(curl -s ${gh_proxy}raw.githubusercontent.com/kejilion/sh/main/kejilion.sh | grep -o 'sh_v="[0-9.]*"' | cut -d '"' -f 2)
+	curl -s --max-time 15 ${gh_proxy}raw.githubusercontent.com/kejilion/sh/main/kejilion_sh_log.txt | tail -n 30
+	# 전체 스크립트를 다운로드하지 않으려면 처음 5줄만 다운로드하여 버전 번호를 확인하세요.
+	local sh_v_new=$(curl -s --max-time 15 -r 0-200 ${gh_proxy}raw.githubusercontent.com/kejilion/sh/main/kejilion.sh | grep -o 'sh_v="[0-9.]*"' | head -1 | cut -d '"' -f 2)
 
-	if [ "$sh_v" = "$sh_v_new" ]; then
+	if [ -z "$sh_v_new" ]; then
+		echo -e "${gl_hong}최신 버전 정보를 얻을 수 없습니다. 네트워크 연결을 확인하십시오.${gl_bai}"
+	elif [ "$sh_v" = "$sh_v_new" ]; then
 		echo -e "${gl_lv}이미 최신 버전을 사용하고 있습니다!${gl_huang}v$sh_v${gl_bai}"
 		send_stats "스크립트가 이미 최신 상태이므로 업데이트할 필요가 없습니다."
 	else
@@ -21452,37 +21710,76 @@ while true; do
 	case "$choice" in
 		1)
 			clear
-			local country=$(curl -s ipinfo.io/country)
+			local country=$(curl -s --max-time 5 ipinfo.io/country)
+			local download_url
 			if [ "$country" = "CN" ]; then
-				curl -sS -O ${gh_proxy}raw.githubusercontent.com/kejilion/sh/main/cn/kejilion.sh && chmod +x kejilion.sh
+				download_url="${gh_proxy}raw.githubusercontent.com/kejilion/sh/main/cn/kejilion.sh"
 			else
-				curl -sS -O ${gh_proxy}raw.githubusercontent.com/kejilion/sh/main/kejilion.sh && chmod +x kejilion.sh
+				download_url="${gh_proxy}raw.githubusercontent.com/kejilion/sh/main/kejilion.sh"
 			fi
-			canshu_v6
-			CheckFirstRun_true
-			yinsiyuanquan2
-			cp -f ~/kejilion.sh /usr/local/bin/k > /dev/null 2>&1
-			echo -e "${gl_lv}스크립트가 최신 버전으로 업데이트되었습니다!${gl_huang}v$sh_v_new${gl_bai}"
-			send_stats "스크립트가 최신 상태입니다.$sh_v_new"
+
+			# 현재 스크립트 백업
+			cp -f ~/kejilion.sh ~/kejilion.sh.bak 2>/dev/null
+
+			# 임시 파일로 다운로드 후 확인 후 교체
+			local tmp_file=$(mktemp ~/kejilion_tmp.XXXXXX)
+			if curl -sS --max-time 60 --fail -o "$tmp_file" "$download_url" && \
+			   [ -s "$tmp_file" ] && \
+			   head -1 "$tmp_file" | grep -q '^#!/bin/bash'; then
+				chmod +x "$tmp_file"
+				mv -f "$tmp_file" ~/kejilion.sh
+				canshu_v6
+				CheckFirstRun_true
+				yinsiyuanquan2
+				cp -f ~/kejilion.sh /usr/local/bin/k > /dev/null 2>&1
+				ln -sf /usr/local/bin/k /usr/bin/k > /dev/null 2>&1
+				echo -e "${gl_lv}스크립트가 최신 버전으로 업데이트되었습니다!${gl_huang}v$sh_v_new${gl_bai}"
+				send_stats "스크립트가 최신 상태입니다.$sh_v_new"
+			else
+				rm -f "$tmp_file"
+				# 백업 복원
+				if [ -f ~/kejilion.sh.bak ]; then
+					mv -f ~/kejilion.sh.bak ~/kejilion.sh
+				fi
+				echo -e "${gl_hong}업데이트에 실패했습니다! 다운로드 중 오류가 발생했거나 파일 확인에 실패했습니다. 원본 버전이 복원되었습니다.${gl_bai}"
+				send_stats "스크립트 업데이트 실패"
+			fi
 			break_end
 			~/kejilion.sh
 			exit
 			;;
 		2)
 			clear
-			local country=$(curl -s ipinfo.io/country)
+			local country=$(curl -s --max-time 5 ipinfo.io/country)
 			local ipv6_address=$(curl -s --max-time 1 ipv6.ip.sb)
+			local cron_proxy cron_sed_cmd
 			if [ "$country" = "CN" ]; then
-				SH_Update_task="curl -sS -O https://gh.kejilion.pro/raw.githubusercontent.com/kejilion/sh/main/kejilion.sh && chmod +x kejilion.sh && sed -i 's/canshu=\"default\"/canshu=\"CN\"/g' ./kejilion.sh"
+				cron_proxy="https://gh.kejilion.pro/"
+				cron_sed_cmd="sed -i 's/canshu=\"default\"/canshu=\"CN\"/g' ~/kejilion.sh"
 			elif [ -n "$ipv6_address" ]; then
-				SH_Update_task="curl -sS -O https://gh.kejilion.pro/raw.githubusercontent.com/kejilion/sh/main/kejilion.sh && chmod +x kejilion.sh && sed -i 's/canshu=\"default\"/canshu=\"V6\"/g' ./kejilion.sh"
+				cron_proxy="https://gh.kejilion.pro/"
+				cron_sed_cmd="sed -i 's/canshu=\"default\"/canshu=\"V6\"/g' ~/kejilion.sh"
 			else
-				SH_Update_task="curl -sS -O https://raw.githubusercontent.com/kejilion/sh/main/kejilion.sh && chmod +x kejilion.sh"
+				cron_proxy="https://"
+				cron_sed_cmd=""
 			fi
+
+			# 강력한 자동 업데이트 명령 구축: 임시 파일로 다운로드 → 확인 → 백업 → 교체 → 로컬 설정 복원 → 배포
+			SH_Update_task="cd ~ && tmp=\$(mktemp ~/kejilion_tmp.XXXXXX) && curl -sS --max-time 60 --fail -o \"\$tmp\" ${cron_proxy}raw.githubusercontent.com/kejilion/sh/main/kejilion.sh && [ -s \"\$tmp\" ] && head -1 \"\$tmp\" | grep -q '^#!/bin/bash' && cp -f ~/kejilion.sh ~/kejilion.sh.bak 2>/dev/null && chmod +x \"\$tmp\" && mv -f \"\$tmp\" ~/kejilion.sh"
+			# 추가 설정 복구
+			if [ -n "$cron_sed_cmd" ]; then
+				SH_Update_task="$SH_Update_task && $cron_sed_cmd"
+			fi
+			# 이전 스크립트에서Permission_granted 및 ENABLE_STATS 설정을 복원합니다.
+			SH_Update_task="$SH_Update_task && grep -q 'permission_granted=\"true\"' ~/kejilion.sh.bak 2>/dev/null && sed -i 's/permission_granted=\"false\"/permission_granted=\"true\"/' ~/kejilion.sh; grep -q 'ENABLE_STATS=\"false\"' ~/kejilion.sh.bak 2>/dev/null && sed -i 's/ENABLE_STATS=\"true\"/ENABLE_STATS=\"false\"/' ~/kejilion.sh"
+			# /usr/local/bin/k 및 /usr/bin/k에 배포
+			SH_Update_task="$SH_Update_task; cp -f ~/kejilion.sh /usr/local/bin/k 2>/dev/null; ln -sf /usr/local/bin/k /usr/bin/k 2>/dev/null"
+			# 다운로드 실패 시 임시 파일 정리
+			SH_Update_task="$SH_Update_task || rm -f \"\$tmp\" 2>/dev/null"
+
 			check_crontab_installed
 			(crontab -l | grep -v "kejilion.sh") | crontab -
-			# (crontab -l 2>/dev/null; echo "0 2 * * * bash -c \"$SH_Update_task\"") | crontab -
-			(crontab -l 2>/dev/null; echo "$(shuf -i 0-59 -n 1) 2 * * * bash -c \"$SH_Update_task\"") | crontab -
+			(crontab -l 2>/dev/null; echo "$(shuf -i 0-59 -n 1) 2 * * * bash -c '$SH_Update_task'") | crontab -
 			echo -e "${gl_lv}자동 업데이트가 켜져 있고 매일 새벽 2시에 스크립트가 자동으로 업데이트됩니다!${gl_bai}"
 			send_stats "자동 스크립트 업데이트 활성화"
 			break_end
@@ -21602,7 +21899,7 @@ echo "도커 컨테이너 관리 k 도커 ps |k 도커 컨테이너"
 echo "도커 이미지 관리 k docker img |k 도커 이미지"
 echo "LDNMP 사이트 관리 k web"
 echo "LDNMP 캐시 정리 k 웹 캐시"
-echo "WordPress k wp 설치 | k 워드프레스 | k wp xxx.com"
+echo "WordPress k wp 설치 | k 워드프레스 | kwp xxx.com"
 echo "역방향 프록시 설치 k fd |k rp |k 역방향 프록시 |k fd xxx.com"
 echo "로드 밸런싱 설치 k loadbalance |k 로드 밸런싱"
 echo "L4 로드 밸런싱 설치 k 스트림 |k L4 로드 밸런싱"
